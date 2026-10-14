@@ -370,7 +370,7 @@
       <button class="nav-btn" id="navResult" onclick="switchPage('result')">🏋️ 実績</button>
     </div>
 
-    <!-- 0. 今日の練習（カレンダー確認） -->
+    <!-- 0. 今日の練習 -->
     <div id="pageView" class="page-section active">
       <h2>📌 今日の練習</h2>
       <div class="cal-header">
@@ -440,6 +440,13 @@
     let currentMonth = new Date().getMonth() + 1;
     let selectedDateStr = new Date().toISOString().split('T')[0];
     let monthlyScheduledDates = new Set();
+
+    // タイトル整形用ヘルパー関数
+    function getDisplayTitle(id, name) {
+      if (!name || name === id) return id;
+      if (name.startsWith(id)) return name;
+      return `${id} ${name}`;
+    }
 
     async function callGasApi(action, payload = {}) {
       try {
@@ -616,8 +623,9 @@
         res.items.filter(i => i.category === cat).forEach(item => {
           const row = document.createElement('div');
           row.className = 'summary-item-row';
+          const titleStr = getDisplayTitle(item.id, item.name);
           row.innerHTML = `
-            <div class="summary-item-title">${item.id} ${item.name}</div>
+            <div class="summary-item-title">${titleStr}</div>
             <div class="summary-item-meta">
               ${item.amountText ? item.amountText + ' × ' : ''}${item.sets}セット ${item.durationMin > 0 ? `(${item.durationMin}分)` : ''}
             </div>
@@ -695,8 +703,9 @@
           chk.value = menu.id;
           chk.id = `chk-${menu.id}`;
 
+          const titleStr = getDisplayTitle(menu.id, menu.name);
           const label = document.createElement('span');
-          label.innerText = `${menu.id} ${menu.name} ${menu.amountText ? '(' + menu.amountText + ')' : ''}`;
+          label.innerText = `${titleStr} ${menu.amountText ? '(' + menu.amountText + ')' : ''}`;
 
           card.appendChild(chk);
           card.appendChild(label);
@@ -806,10 +815,12 @@
           card.className = `result-card ${res.isCompleted ? 'completed' : ''}`;
           card.id = `res-card-${res.recordId}`;
 
+          const titleStr = getDisplayTitle(res.menuId, res.menuName);
+
           card.innerHTML = `
             <div class="result-header">
               <div>
-                <div class="result-title">${res.menuId} ${res.menuName}</div>
+                <div class="result-title">${titleStr}</div>
               </div>
               <button class="check-btn ${res.isCompleted ? 'checked' : ''}" onclick="toggleResultComplete('${res.recordId}', this)">
                 ${res.isCompleted ? '✓ 完了' : '未完了'}
