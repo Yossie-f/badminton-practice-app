@@ -582,7 +582,6 @@
       `;
       container.appendChild(headerDiv);
 
-      // テーマ表示＆直接編集欄
       const themeBlock = document.createElement('div');
       themeBlock.className = 'theme-banner';
       themeBlock.innerHTML = `
@@ -654,7 +653,7 @@
         } else {
           badge.className = 'mode-badge mode-new';
           badge.innerText = '✨ 新規登録モード';
-          themeInput.value = res.latestTheme || ""; // 前回のテーマをデフォルト表示
+          themeInput.value = res.latestTheme || "";
         }
         refreshCheckboxes();
         updateSummary();
@@ -877,7 +876,6 @@
     }
 
     async function saveAmountText(recordId, val) {
-      // 画面上のテキスト表示も更新（次回ロード時にも保持）
     }
 
     async function saveTimeSec(recordId, val) {
@@ -885,7 +883,7 @@
     }
 
     async function saveMemo(recordId, val) {
-      await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { memo: String(val) });
+      await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { memo: String(val) } });
     }
   </script>
 </body>
