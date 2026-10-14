@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>練習管理アプリ</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    body {
+      background-color: #eef2f5;
+      margin: 0;
+      padding: 16px 10px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 480px;
+      padding: 20px 16px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    }
+
+    .main-nav {
+      display: flex;
+      background: #e2e8f0;
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 18px;
+    }
+    .nav-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #64748b;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-btn.active {
+      background: #ffffff;
+      color: #2563eb;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    h2 {
+      text-align: center;
+      color: #2563eb;
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.3rem;
+    }
+    .mode-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .mode-new { background: #dbeafe; color: #1e40af; }
+    .mode-edit { background: #fef3c7; color: #92400e; }
+    .header-container { text-align: center; }
+
+    .form-group { margin-bottom: 16px; }
+    label.title-label {
+      font-weight: 600;
+      color: #334155;
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+    input[type="date"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    /* カレンダーUI */
+    .cal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .cal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .cal-nav-btn {
+      background: #f1f5f9;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #334155;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .cal-day-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #64748b;
+      padding: 6px 0;
+    }
+    .cal-cell {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      background: #f8fafc;
+      border: 1px solid #f1f5f9;
+      color: #334155;
+    }
+    .cal-cell.other-month { opacity: 0.3; }
+    .cal-cell.today { border: 2px solid #2563eb; }
+    .cal-cell.selected { background: #2563eb; color: #ffffff; }
+    .cal-dot {
+      width: 5px;
+      height: 5px;
+      background-color: #2563eb;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 4px;
+    }
+    .cal-cell.selected .cal-dot { background-color: #ffffff; }
+
+    .view-detail-card {
+      margin-top: 16px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .detail-date-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .action-links { display: flex; gap: 8px; }
+    .action-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-edit-link { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .btn-result-link { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+
+    .category-group-block { margin-bottom: 12px; }
+    .category-group-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #2563eb;
+      background: #eff6ff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+    .summary-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 4px;
+      font-size: 0.85rem;
+    }
+    .summary-item-title { font-weight: 600; color: #1e293b; }
+    .summary-item-meta { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+
+    .tab-container {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #f1f5f9;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-btn {
+      background: #f1f5f9;
+      border: none;
+      padding: 7px 12px;
+      border-radius: 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .tab-btn.active { background: #2563eb; color: #ffffff; }
+
+    .menu-group {
+      display: none;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 10px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .menu-group.active { display: block; }
+
+    .item-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .item-card.selected { border-color: #2563eb; background-color: #eff6ff; }
+    .item-card input[type="checkbox"] { width: 18px; height: 18px; accent-color: #2563eb; }
+    .item-card span { font-size: 0.9rem; color: #1e293b; font-weight: 500; }
+
+    .selected-summary {
+      text-align: right;
+      font-size: 0.85rem;
+      color: #2563eb;
+      font-weight: 600;
+      margin-top: 6px;
+      margin-bottom: 14px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 13px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+    }
+    .btn-submit:disabled { background: #94a3b8; box-shadow: none; }
+
+    .result-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .result-card.completed { background: #f0fdf4; border-color: #22c55e; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .result-title { font-weight: 700; font-size: 0.95rem; color: #0f172a; }
+
+    .check-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f5f9;
+      border: 1.5px solid #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+    }
+    .check-btn.checked { background: #22c55e; border-color: #22c55e; color: #ffffff; }
+
+    .result-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+      background: #f8fafc;
+      padding: 8px;
+      border-radius: 10px;
+    }
+    .ctrl-group { display: flex; flex-direction: column; gap: 4px; }
+    .ctrl-group label { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+    .ctrl-input { padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; }
+
+    .counter-btn { display: flex; align-items: center; gap: 8px; }
+    .counter-btn button {
+      background: #e2e8f0;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .loading { text-align: center; color: #64748b; padding: 20px 0; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="main-nav">
+      <button class="nav-btn active" id="navView" onclick="switchPage('view')">📆 カレンダー</button>
+      <button class="nav-btn" id="navSched" onclick="switchPage('sched')">📅 スケジュール</button>
+      <button class="nav-btn" id="navResult" onclick="switchPage('result')">🏋️ 実績</button>
+    </div>
+
+    <!-- カレンダー -->
+    <div id="pageView" class="page-section active">
+      <h2>📆 スケジュール確認</h2>
+      <div class="cal-header">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">◀</button>
+        <div class="cal-title" id="calMonthTitle">2026年10月</div>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
+      </div>
+      <div class="cal-grid" id="calGrid">
+        <div class="cal-day-header">日</div>
+        <div class="cal-day-header">月</div>
+        <div class="cal-day-header">火</div>
+        <div class="cal-day-header">水</div>
+        <div class="cal-day-header">木</div>
+        <div class="cal-day-header">金</div>
+        <div class="cal-day-header">土</div>
+      </div>
+      <div id="calDetailContainer" class="view-detail-card">
+        <div class="loading">日付を選択してください</div>
+      </div>
+    </div>
+
+    <!-- スケジュール -->
+    <div id="pageSched" class="page-section">
+      <div class="header-container">
+        <h2>🏆 スケジュール登録・編集</h2>
+        <span id="modeBadge" class="mode-badge mode-new">✨ 新規登録モード</span>
+      </div>
+      <div class="form-group">
+        <label class="title-label">日付</label>
+        <input type="date" id="schedDateInput" onchange="loadScheduleForDate()">
+      </div>
+      <div class="form-group">
+        <label class="title-label">練習メニュー（カテゴリ別）</label>
+        <div class="tab-container" id="tabContainer"></div>
+        <div id="menuContainer"><div class="loading">読み込み中...</div></div>
+        <div class="selected-summary" id="selectedSummary">選択中: 0 件</div>
+      </div>
+      <button type="button" class="btn-submit" id="saveBtn" onclick="handleSave()">保存して実績を展開</button>
+    </div>
+
+    <!-- 実績 -->
+    <div id="pageResult" class="page-section">
+      <h2>🏋️ 練習実績の記録</h2>
+      <div class="form-group">
+        <label class="title-label">対象日付</label>
+        <input type="date" id="resultDateInput" onchange="loadPracticeResults()">
+      </div>
+      <div class="form-group">
+        <div class="tab-container" id="resultTabContainer"></div>
+        <div id="resultListContainer"><div class="loading">実績データを読み込み中...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ★★★ ステップ1で取得したGASのウェブアプリURLをここに貼り付けてください ★★★
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwGm9MPl1NZyeHBMui2XNr31BgaxWG65uQ5OaE_udD0TLQvLuwfoCLYBacrlGjsReQ/exec";
+
+    let allMenus = [];
+    const selectedMenuIds = new Set();
+    const categoryOrder = ["アップ", "基礎", "応用", "走", "筋力", "室内トレ", "バランス", "メンタル"];
+
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth() + 1;
+    let selectedDateStr = new Date().toISOString().split('T')[0];
+    let monthlyScheduledDates = new Set();
+
+    // 通信用汎用関数
+    async function callGasApi(action, payload = {}) {
+      try {
+        const bodyData = Object.assign({ action: action }, payload);
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(bodyData)
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error || "APIエラー発生");
+        return json.data;
+      } catch (e) {
+        console.error(e);
+        alert("通信エラー: " + e.message);
+        throw e;
+      }
+    }
+
+    window.onload = async function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('schedDateInput').value = today;
+      document.getElementById('resultDateInput').value = today;
+
+      try {
+        allMenus = await callGasApi("getMenuList");
+        renderSchedMenuList(allMenus);
+        renderCalendar();
+      } catch (e) {}
+    };
+
+    function switchPage(page) {
+      document.getElementById('navView').classList.toggle('active', page === 'view');
+      document.getElementById('navSched').classList.toggle('active', page === 'sched');
+      document.getElementById('navResult').classList.toggle('active', page === 'result');
+
+      document.getElementById('pageView').classList.toggle('active', page === 'view');
+      document.getElementById('pageSched').classList.toggle('active', page === 'sched');
+      document.getElementById('pageResult').classList.toggle('active', page === 'result');
+
+      if (page === 'view') renderCalendar();
+      else if (page === 'sched') loadScheduleForDate();
+      else if (page === 'result') loadPracticeResults();
+    }
+
+    function jumpToSched(dateStr) {
+      document.getElementById('schedDateInput').value = dateStr;
+      switchPage('sched');
+    }
+
+    function jumpToResult(dateStr) {
+      document.getElementById('resultDateInput').value = dateStr;
+      switchPage('result');
+    }
+
+    function changeMonth(delta) {
+      currentMonth += delta;
+      if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+      else if (currentMonth < 1) { currentMonth = 12; currentYear--; }
+      renderCalendar();
+    }
+
+    async function renderCalendar() {
+      document.getElementById('calMonthTitle').innerText = `${currentYear}年${currentMonth}月`;
+      try {
+        const dates = await callGasApi("getMonthlySchedules", { year: currentYear, month: currentMonth });
+        monthlyScheduledDates = new Set(dates);
+        buildCalendarGrid();
+        loadScheduleDetailForCalendar(selectedDateStr);
+      } catch (e) {}
+    }
+
+    function buildCalendarGrid() {
+      const calGrid = document.getElementById('calGrid');
+      calGrid.querySelectorAll('.cal-cell').forEach(c => c.remove());
+
+      const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
+      const lastDate = new Date(currentYear, currentMonth, 0).getDate();
+      const prevLastDate = new Date(currentYear, currentMonth - 1, 0).getDate();
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell other-month';
+        cell.innerText = prevLastDate - i;
+        calGrid.appendChild(cell);
+      }
+
+      for (let d = 1; d <= lastDate; d++) {
+        const monthStr = String(currentMonth).padStart(2, '0');
+        const dayStr = String(d).padStart(2, '0');
+        const dateStr = `${currentYear}-${monthStr}-${dayStr}`;
+
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        if (dateStr === todayStr) cell.classList.add('today');
+        if (dateStr === selectedDateStr) cell.classList.add('selected');
+
+        cell.innerText = d;
+        if (monthlyScheduledDates.has(dateStr)) {
+          const dot = document.createElement('div');
+          dot.className = 'cal-dot';
+          cell.appendChild(dot);
+        }
+
+        cell.onclick = () => {
+          document.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('selected'));
+          cell.classList.add('selected');
+          selectedDateStr = dateStr;
+          loadScheduleDetailForCalendar(dateStr);
+        };
+        calGrid.appendChild(cell);
+      }
+    }
+
+    async function loadScheduleDetailForCalendar(dateStr) {
+      const container = document.getElementById('calDetailContainer');
+      container.innerHTML = '<div class="loading">情報を読み込み中...</div>';
+      try {
+        const res = await callGasApi("getScheduleDetail", { dateStr: dateStr });
+        renderCalendarDetailView(dateStr, res);
+      } catch (e) {}
+    }
+
+    function renderCalendarDetailView(dateStr, res) {
+      const container = document.getElementById('calDetailContainer');
+      container.innerHTML = '';
+
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'detail-header';
+      const parts = dateStr.split('-');
+      const formattedDate = `${parts[0]}年${parseInt(parts[1], 10)}月${parseInt(parts[2], 10)}日`;
+
+      headerDiv.innerHTML = `
+        <div class="detail-date-title">📌 ${formattedDate}</div>
+        <div class="action-links">
+          <span class="action-badge btn-edit-link" onclick="jumpToSched('${dateStr}')">✏️ 編集</span>
+          ${res.exists ? `<span class="action-badge btn-result-link" onclick="jumpToResult('${dateStr}')">🏋️ 実績</span>` : ''}
+        </div>
+      `;
+      container.appendChild(headerDiv);
+
+      if (!res.exists || res.items.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'loading';
+        emptyDiv.innerHTML = 'この日のスケジュールは未登録です。<br><span style="color:#2563eb; cursor:pointer; font-weight:bold;" onclick="jumpToSched(\'${dateStr}\')">＋ 予定を追加する</span>';
+        container.appendChild(emptyDiv);
+        return;
+      }
+
+      const extractedCategories = [...new Set(res.items.map(i => i.category))];
+      const categories = extractedCategories.sort((a, b) => {
+        let idxA = categoryOrder.indexOf(a), idxB = categoryOrder.indexOf(b);
+        return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+      });
+
+      categories.forEach(cat => {
+        const groupBlock = document.createElement('div');
+        groupBlock.className = 'category-group-block';
+
+        const catTitle = document.createElement('div');
+        catTitle.className = 'category-group-title';
+        catTitle.innerText = cat;
+        groupBlock.appendChild(catTitle);
+
+        res.items.filter(i => i.category === cat).forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'summary-item-row';
+          row.innerHTML = `
+            <div class="summary-item-title">${item.id} ${item.name}</div>
+            <div class="summary-item-meta">
+              ${item.sets}セット ${item.durationMin > 0 ? `(${item.durationMin}分)` : ''}
+            </div>
+          `;
+          groupBlock.appendChild(row);
+        });
+        container.appendChild(groupBlock);
+      });
+    }
+
+    async function loadScheduleForDate() {
+      const dateStr = document.getElementById('schedDateInput').value;
+      if (!dateStr) return;
+
+      const badge = document.getElementById('modeBadge');
+      badge.className = 'mode-badge mode-new';
+      badge.innerText = '🔄 読み込み中...';
+
+      try {
+        const res = await callGasApi("getScheduleDetail", { dateStr: dateStr });
+        selectedMenuIds.clear();
+        if (res.exists) {
+          badge.className = 'mode-badge mode-edit';
+          badge.innerText = '✏️ 既存スケジュールの編集モード';
+          res.selectedMenus.forEach(id => selectedMenuIds.add(id));
+        } else {
+          badge.className = 'mode-badge mode-new';
+          badge.innerText = '✨ 新規登録モード';
+        }
+        refreshCheckboxes();
+        updateSummary();
+      } catch (e) {}
+    }
+
+    function renderSchedMenuList(menus) {
+      const tabContainer = document.getElementById('tabContainer');
+      const menuContainer = document.getElementById('menuContainer');
+      tabContainer.innerHTML = '';
+      menuContainer.innerHTML = '';
+
+      const extractedCategories = [...new Set(menus.map(m => m.category))];
+      const categories = extractedCategories.sort((a, b) => {
+        let idxA = categoryOrder.indexOf(a), idxB = categoryOrder.indexOf(b);
+        return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+      });
+
+      categories.forEach((cat, index) => {
+        const tabBtn = document.createElement('button');
+        tabBtn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+        tabBtn.innerText = cat;
+        tabBtn.onclick = () => switchTab('sched', cat);
+        tabBtn.id = `sched-tab-${cat}`;
+        tabContainer.appendChild(tabBtn);
+
+        const groupDiv = document.createElement('div');
+        groupDiv.className = `menu-group ${index === 0 ? 'active' : ''}`;
+        groupDiv.id = `sched-group-${cat}`;
+
+        menus.filter(m => m.category === cat).forEach(menu => {
+          const card = document.createElement('div');
+          card.className = 'item-card';
+          card.id = `card-${menu.id}`;
+          card.onclick = (e) => toggleCheck(menu.id, card, e);
+
+          const chk = document.createElement('input');
+          chk.type = 'checkbox';
+          chk.value = menu.id;
+          chk.id = `chk-${menu.id}`;
+
+          const label = document.createElement('span');
+          label.innerText = `${menu.id} ${menu.name}`;
+
+          card.appendChild(chk);
+          card.appendChild(label);
+          groupDiv.appendChild(card);
+        });
+        menuContainer.appendChild(groupDiv);
+      });
+      refreshCheckboxes();
+      updateSummary();
+    }
+
+    function refreshCheckboxes() {
+      allMenus.forEach(menu => {
+        const card = document.getElementById(`card-${menu.id}`);
+        const chk = document.getElementById(`chk-${menu.id}`);
+        if (card && chk) {
+          const isSel = selectedMenuIds.has(menu.id);
+          chk.checked = isSel;
+          card.classList.toggle('selected', isSel);
+        }
+      });
+    }
+
+    function toggleCheck(menuId, cardElement, event) {
+      if (event.target.tagName !== 'INPUT') {
+        const chk = cardElement.querySelector('input[type="checkbox"]');
+        chk.checked = !chk.checked;
+      }
+      const chk = cardElement.querySelector('input[type="checkbox"]');
+      if (chk.checked) selectedMenuIds.add(menuId);
+      else selectedMenuIds.delete(menuId);
+      cardElement.classList.toggle('selected', chk.checked);
+      updateSummary();
+    }
+
+    function updateSummary() {
+      document.getElementById('selectedSummary').innerText = `選択中: ${selectedMenuIds.size} 件`;
+    }
+
+    async function handleSave() {
+      const dateStr = document.getElementById('schedDateInput').value;
+      if (!dateStr || selectedMenuIds.size === 0) {
+        alert("日付とメニューを選択してください。");
+        return;
+      }
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = true;
+      saveBtn.innerText = "保存処理中...";
+
+      try {
+        await callGasApi("saveSchedule", { dateStr: dateStr, selectedMenus: Array.from(selectedMenuIds) });
+        alert(`スケジュールの保存が完了しました！`);
+        saveBtn.disabled = false;
+        saveBtn.innerText = "保存して実績を展開";
+        loadScheduleForDate();
+      } catch (e) {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "保存して実績を展開";
+      }
+    }
+
+    async function loadPracticeResults() {
+      const dateStr = document.getElementById('resultDateInput').value;
+      const container = document.getElementById('resultListContainer');
+      document.getElementById('resultTabContainer').innerHTML = '';
+      container.innerHTML = '<div class="loading">実績データを読み込み中...</div>';
+
+      try {
+        const results = await callGasApi("getPracticeResults", { dateStr: dateStr });
+        renderResultList(results);
+      } catch (e) {}
+    }
+
+    function renderResultList(results) {
+      const tabContainer = document.getElementById('resultTabContainer');
+      const container = document.getElementById('resultListContainer');
+      tabContainer.innerHTML = '';
+      container.innerHTML = '';
+
+      if (results.length === 0) {
+        container.innerHTML = '<div class="loading">この日の練習スケジュールはありません。<br>「スケジュール」タブから登録してください。</div>';
+        return;
+      }
+
+      const extractedCategories = [...new Set(results.map(r => r.category))];
+      const categories = extractedCategories.sort((a, b) => {
+        let idxA = categoryOrder.indexOf(a), idxB = categoryOrder.indexOf(b);
+        return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+      });
+
+      categories.forEach((cat, index) => {
+        const tabBtn = document.createElement('button');
+        tabBtn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+        tabBtn.innerText = cat;
+        tabBtn.onclick = () => switchTab('res', cat);
+        tabBtn.id = `res-tab-${cat}`;
+        tabContainer.appendChild(tabBtn);
+
+        const groupDiv = document.createElement('div');
+        groupDiv.className = `menu-group ${index === 0 ? 'active' : ''}`;
+        groupDiv.id = `res-group-${cat}`;
+
+        results.filter(r => r.category === cat).forEach(res => {
+          const card = document.createElement('div');
+          card.className = `result-card ${res.isCompleted ? 'completed' : ''}`;
+          card.id = `res-card-${res.recordId}`;
+
+          card.innerHTML = `
+            <div class="result-header">
+              <div>
+                <div class="result-title">${res.menuId} ${res.menuName}</div>
+              </div>
+              <button class="check-btn ${res.isCompleted ? 'checked' : ''}" onclick="toggleResultComplete('${res.recordId}', this)">
+                ${res.isCompleted ? '✓ 完了' : '未完了'}
+              </button>
+            </div>
+
+            <div class="result-controls">
+              <div class="ctrl-group">
+                <label>セット数</label>
+                <div class="counter-btn">
+                  <button type="button" onclick="changeSetCount('${res.recordId}', -1)">-</button>
+                  <span id="set-val-${res.recordId}" class="font-bold text-sm">${res.sets}</span>
+                  <button type="button" onclick="changeSetCount('${res.recordId}', 1)">+</button>
+                </div>
+              </div>
+
+              <div class="ctrl-group">
+                <label>タイム (秒)</label>
+                <input type="number" class="ctrl-input" value="${res.timeSec}" onchange="saveTimeSec('${res.recordId}', this.value)">
+              </div>
+
+              <div class="ctrl-group" style="grid-column: span 2;">
+                <label>メモ</label>
+                <input type="text" class="ctrl-input" placeholder="メモ・感想" value="${res.memo}" onchange="saveMemo('${res.recordId}', this.value)">
+              </div>
+            </div>
+          `;
+          groupDiv.appendChild(card);
+        });
+
+        container.appendChild(groupDiv);
+      });
+    }
+
+    function switchTab(type, cat) {
+      const prefix = type === 'sched' ? 'sched' : 'res';
+      document.querySelectorAll(`#page${type === 'sched' ? 'Sched' : 'Result'} .tab-btn`).forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll(`#page${type === 'sched' ? 'Sched' : 'Result'} .menu-group`).forEach(grp => grp.classList.remove('active'));
+      document.getElementById(`${prefix}-tab-${cat}`)?.classList.add('active');
+      document.getElementById(`${prefix}-group-${cat}`)?.classList.add('active');
+    }
+
+    async function toggleResultComplete(recordId, btn) {
+      const isCompleted = !btn.classList.contains('checked');
+      btn.classList.toggle('checked', isCompleted);
+      btn.innerText = isCompleted ? '✓ 完了' : '未完了';
+      document.getElementById(`res-card-${recordId}`).classList.toggle('completed', isCompleted);
+
+      await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { isCompleted: isCompleted } });
+    }
+
+    async function changeSetCount(recordId, delta) {
+      const valElem = document.getElementById(`set-val-${recordId}`);
+      let currentVal = parseInt(valElem.innerText, 10) || 1;
+      currentVal = Math.max(1, currentVal + delta);
+      valElem.innerText = currentVal;
+
+      await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { sets: currentVal } });
+    }
+
+    async function saveTimeSec(recordId, val) {
+      await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { timeSec: Number(val) || 0 } });
+    }
+
+    async function saveMemo(recordId, val) {
+      await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { memo: String(val) } });
+    }
+  </script>
+</body>
+</html>
