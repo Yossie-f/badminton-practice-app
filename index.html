@@ -73,21 +73,22 @@
     .mode-edit { background: #fef3c7; color: #92400e; }
     .header-container { text-align: center; }
 
-    .form-group { margin-bottom: 16px; }
+    .form-group { margin-bottom: 14px; }
     label.title-label {
       font-weight: 600;
       color: #334155;
       display: block;
       margin-bottom: 6px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
-    input[type="date"], input[type="text"] {
+    input[type="date"], input[type="text"], input[type="number"], select {
       width: 100%;
-      padding: 10px 12px;
+      padding: 9px 12px;
       border: 1.5px solid #cbd5e1;
-      border-radius: 12px;
-      font-size: 0.95rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
       outline: none;
+      background: #ffffff;
     }
 
     /* カレンダーUI */
@@ -97,11 +98,7 @@
       align-items: center;
       margin-bottom: 12px;
     }
-    .cal-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #1e293b;
-    }
+    .cal-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
     .cal-nav-btn {
       background: #f1f5f9;
       border: none;
@@ -118,12 +115,7 @@
       gap: 4px;
       text-align: center;
     }
-    .cal-day-header {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #64748b;
-      padding: 6px 0;
-    }
+    .cal-day-header { font-size: 0.75rem; font-weight: 700; color: #64748b; padding: 6px 0; }
     .cal-cell {
       aspect-ratio: 1;
       display: flex;
@@ -167,12 +159,7 @@
       padding-bottom: 8px;
       border-bottom: 1px solid #cbd5e1;
     }
-    .detail-date-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #0f172a;
-    }
-    .action-links { display: flex; gap: 8px; }
+    .detail-date-title { font-size: 1rem; font-weight: 700; color: #0f172a; }
     .action-badge {
       display: inline-flex;
       align-items: center;
@@ -182,10 +169,8 @@
       font-size: 0.75rem;
       font-weight: 700;
       cursor: pointer;
-      text-decoration: none;
     }
     .btn-edit-link { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-    .btn-result-link { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 
     .theme-banner {
       background: #eff6ff;
@@ -206,31 +191,93 @@
       padding: 2px 0;
     }
 
-    .category-group-block { margin-bottom: 12px; }
-    .category-group-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #2563eb;
-      background: #eff6ff;
-      padding: 4px 10px;
-      border-radius: 6px;
-      display: inline-block;
-      margin-bottom: 6px;
-    }
-    .summary-item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    /* 統合型練習メニューカード・アコーディオン */
+    .practice-card {
       background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 8px 10px;
-      margin-bottom: 4px;
-      font-size: 0.85rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      transition: all 0.2s;
     }
-    .summary-item-title { font-weight: 600; color: #1e293b; }
-    .summary-item-meta { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+    .practice-card.completed { background: #f0fdf4; border-color: #22c55e; }
 
+    .card-main-header {
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card-title-group { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .card-menu-title { font-size: 0.9rem; font-weight: 700; color: #0f172a; }
+    .card-menu-sub { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+
+    .card-right-controls { display: flex; align-items: center; gap: 8px; }
+    .check-btn {
+      background: #f1f5f9;
+      border: 1.5px solid #cbd5e1;
+      padding: 5px 10px;
+      border-radius: 16px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+    }
+    .check-btn.checked { background: #22c55e; border-color: #22c55e; color: #ffffff; }
+
+    .arrow-icon {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      transition: transform 0.2s;
+    }
+    .practice-card.open .arrow-icon { transform: rotate(180deg); }
+
+    /* アコーディオン詳細パネル */
+    .card-detail-panel {
+      display: none;
+      padding: 10px 12px 12px 12px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+    }
+    .practice-card.open .card-detail-panel { display: block; }
+
+    .ctrl-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .ctrl-group { display: flex; flex-direction: column; gap: 4px; }
+    .ctrl-group label { font-size: 0.7rem; color: #64748b; font-weight: 600; }
+
+    .counter-btn { display: flex; align-items: center; gap: 6px; }
+    .counter-btn button {
+      background: #e2e8f0;
+      border: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .video-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-decoration: none;
+      margin-top: 8px;
+    }
+
+    /* カテゴリタブ共通 */
     .tab-container {
       display: flex;
       gap: 6px;
@@ -293,68 +340,35 @@
       background: #2563eb;
       color: #ffffff;
       border: none;
-      padding: 13px;
+      padding: 12px;
       border-radius: 12px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(37,99,235,0.25);
     }
     .btn-submit:disabled { background: #94a3b8; box-shadow: none; }
 
-    .result-card {
+    /* メニュー管理用リスト */
+    .manage-item-card {
       background: #ffffff;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
-    }
-    .result-card.completed { background: #f0fdf4; border-color: #22c55e; }
-
-    .result-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .result-title { font-weight: 700; font-size: 0.95rem; color: #0f172a; }
-
-    .check-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #f1f5f9;
-      border: 1.5px solid #cbd5e1;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #475569;
-      cursor: pointer;
-    }
-    .check-btn.checked { background: #22c55e; border-color: #22c55e; color: #ffffff; }
-
-    .result-controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 8px;
-      background: #f8fafc;
-      padding: 8px;
+      border: 1px solid #cbd5e1;
       border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .ctrl-group { display: flex; flex-direction: column; gap: 4px; }
-    .ctrl-group label { font-size: 0.75rem; color: #64748b; font-weight: 600; }
-    .ctrl-input { padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; }
-
-    .counter-btn { display: flex; align-items: center; gap: 8px; }
-    .counter-btn button {
-      background: #e2e8f0;
-      border: none;
-      width: 28px;
-      height: 28px;
+    .manage-item-info { display: flex; flex-direction: column; gap: 2px; }
+    .manage-item-title { font-size: 0.88rem; font-weight: 700; color: #0f172a; }
+    .manage-item-meta { font-size: 0.75rem; color: #64748b; }
+    .btn-sm-edit {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 4px 8px;
       border-radius: 6px;
-      font-weight: 700;
+      font-size: 0.75rem;
       cursor: pointer;
     }
 
@@ -367,10 +381,10 @@
     <div class="main-nav">
       <button class="nav-btn active" id="navView" onclick="switchPage('view')">📌 今日の練習</button>
       <button class="nav-btn" id="navSched" onclick="switchPage('sched')">📅 予定作成</button>
-      <button class="nav-btn" id="navResult" onclick="switchPage('result')">🏋️ 実績</button>
+      <button class="nav-btn" id="navManage" onclick="switchPage('manage')">⚙️ メニュー管理</button>
     </div>
 
-    <!-- 0. 今日の練習 -->
+    <!-- 0. 今日の練習（統合画面） -->
     <div id="pageView" class="page-section active">
       <h2>📌 今日の練習</h2>
       <div class="cal-header">
@@ -415,16 +429,69 @@
       <button type="button" class="btn-submit" id="saveBtn" onclick="handleSave()">保存して実績を展開</button>
     </div>
 
-    <!-- 2. 実績 -->
-    <div id="pageResult" class="page-section">
-      <h2>🏋️ 練習実績の記録</h2>
+    <!-- 2. メニュー管理 -->
+    <div id="pageManage" class="page-section">
+      <h2>⚙️ 練習メニュー管理</h2>
+      <button type="button" class="btn-submit" style="margin-bottom: 14px;" onclick="openMenuEditModal(null)">＋ 新しいメニューを追加</button>
+      <div id="manageMenuListContainer"><div class="loading">メニュー情報を読み込み中...</div></div>
+    </div>
+  </div>
+
+  <!-- メニュー編集モーダル風領域 -->
+  <div id="menuEditModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:1000; padding:16px;">
+    <div style="background:#ffffff; width:100%; max-width:440px; border-radius:16px; padding:18px; max-height:90vh; overflow-y:auto;">
+      <h3 id="modalTitle" style="margin-top:0; color:#2563eb;">メニュー編集</h3>
+      <input type="hidden" id="editMenuId">
+      
       <div class="form-group">
-        <label class="title-label">対象日付</label>
-        <input type="date" id="resultDateInput" onchange="loadPracticeResults()">
+        <label class="title-label">メニュー名</label>
+        <input type="text" id="editMenuName" placeholder="例: シャトルリフティング">
       </div>
       <div class="form-group">
-        <div class="tab-container" id="resultTabContainer"></div>
-        <div id="resultListContainer"><div class="loading">実績データを読み込み中...</div></div>
+        <label class="title-label">カテゴリ</label>
+        <select id="editMenuCategory">
+          <option value="アップ">アップ</option>
+          <option value="基礎">基礎</option>
+          <option value="応用">応用</option>
+          <option value="走">走</option>
+          <option value="筋力">筋力</option>
+          <option value="室内トレ">室内トレ</option>
+          <option value="バランス">バランス</option>
+          <option value="メンタル">メンタル</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="title-label">人数区分</label>
+        <input type="text" id="editMenuPeopleType" placeholder="例: 1人, 2人以上">
+      </div>
+      <div class="form-group">
+        <label class="title-label">回数 / 距離（テキスト）</label>
+        <input type="text" id="editMenuAmountText" placeholder="例: 20m, 10球">
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div class="form-group">
+          <label class="title-label">1セット(秒)</label>
+          <input type="number" id="editMenuSecPerSet" value="60">
+        </div>
+        <div class="form-group">
+          <label class="title-label">休憩(秒)</label>
+          <input type="number" id="editMenuRestSec" value="30">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="title-label">デフォルトセット数</label>
+        <input type="number" id="editMenuDefaultSets" value="1">
+      </div>
+      <div class="form-group">
+        <label class="title-label">参考動画URL（L列）</label>
+        <input type="text" id="editMenuVideoUrl" placeholder="https://youtube.com/...">
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:16px;">
+        <button type="button" class="btn-submit" onclick="saveMenuFromModal()">保存</button>
+        <button type="button" style="background:#ef4444; color:#ffffff; border:none; padding:12px; border-radius:12px; font-weight:700; cursor:pointer;" id="deleteMenuBtn" onclick="deleteMenuFromModal()">削除</button>
+        <button type="button" style="background:#e2e8f0; color:#334155; border:none; padding:12px; border-radius:12px; font-weight:700; cursor:pointer;" onclick="closeMenuEditModal()">キャンセル</button>
       </div>
     </div>
   </div>
@@ -441,7 +508,6 @@
     let selectedDateStr = new Date().toISOString().split('T')[0];
     let monthlyScheduledDates = new Set();
 
-    // タイトル整形用ヘルパー関数
     function getDisplayTitle(id, name) {
       if (!name || name === id) return id;
       if (name.startsWith(id)) return name;
@@ -469,7 +535,6 @@
     window.onload = async function() {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('schedDateInput').value = today;
-      document.getElementById('resultDateInput').value = today;
 
       try {
         allMenus = await callGasApi("getMenuList");
@@ -481,25 +546,20 @@
     function switchPage(page) {
       document.getElementById('navView').classList.toggle('active', page === 'view');
       document.getElementById('navSched').classList.toggle('active', page === 'sched');
-      document.getElementById('navResult').classList.toggle('active', page === 'result');
+      document.getElementById('navManage').classList.toggle('active', page === 'manage');
 
       document.getElementById('pageView').classList.toggle('active', page === 'view');
       document.getElementById('pageSched').classList.toggle('active', page === 'sched');
-      document.getElementById('pageResult').classList.toggle('active', page === 'result');
+      document.getElementById('pageManage').classList.toggle('active', page === 'manage');
 
       if (page === 'view') renderCalendar();
       else if (page === 'sched') loadScheduleForDate();
-      else if (page === 'result') loadPracticeResults();
+      else if (page === 'manage') loadManageMenuList();
     }
 
     function jumpToSched(dateStr) {
       document.getElementById('schedDateInput').value = dateStr;
       switchPage('sched');
-    }
-
-    function jumpToResult(dateStr) {
-      document.getElementById('resultDateInput').value = dateStr;
-      switchPage('result');
     }
 
     function changeMonth(delta) {
@@ -567,11 +627,12 @@
       container.innerHTML = '<div class="loading">情報を読み込み中...</div>';
       try {
         const res = await callGasApi("getScheduleDetail", { dateStr: dateStr });
-        renderCalendarDetailView(dateStr, res);
+        const results = await callGasApi("getPracticeResults", { dateStr: dateStr });
+        renderCalendarDetailView(dateStr, res, results);
       } catch (e) {}
     }
 
-    function renderCalendarDetailView(dateStr, res) {
+    function renderCalendarDetailView(dateStr, res, results) {
       const container = document.getElementById('calDetailContainer');
       container.innerHTML = '';
 
@@ -584,7 +645,6 @@
         <div class="detail-date-title">📌 ${formattedDate}</div>
         <div class="action-links">
           <span class="action-badge btn-edit-link" onclick="jumpToSched('${dateStr}')">✏️ 編集</span>
-          ${res.exists ? `<span class="action-badge btn-result-link" onclick="jumpToResult('${dateStr}')">🏋️ 実績</span>` : ''}
         </div>
       `;
       container.appendChild(headerDiv);
@@ -605,6 +665,9 @@
         return;
       }
 
+      const resultMap = new Map();
+      results.forEach(r => resultMap.set(r.menuId, r));
+
       const extractedCategories = [...new Set(res.items.map(i => i.category))];
       const categories = extractedCategories.sort((a, b) => {
         let idxA = categoryOrder.indexOf(a), idxB = categoryOrder.indexOf(b);
@@ -621,25 +684,113 @@
         groupBlock.appendChild(catTitle);
 
         res.items.filter(i => i.category === cat).forEach(item => {
-          const row = document.createElement('div');
-          row.className = 'summary-item-row';
+          const resultData = resultMap.get(item.id) || {
+            recordId: "",
+            isCompleted: false,
+            amountText: item.amountText,
+            sets: item.sets,
+            timeSec: 0,
+            memo: "",
+            videoUrl: item.videoUrl
+          };
+
+          const card = document.createElement('div');
+          card.className = `practice-card ${resultData.isCompleted ? 'completed' : ''}`;
+          card.id = `prac-card-${item.id}`;
+
           const titleStr = getDisplayTitle(item.id, item.name);
-          row.innerHTML = `
-            <div class="summary-item-title">${titleStr}</div>
-            <div class="summary-item-meta">
-              ${item.amountText ? item.amountText + ' × ' : ''}${item.sets}セット ${item.durationMin > 0 ? `(${item.durationMin}分)` : ''}
+          const metaStr = `${resultData.amountText ? resultData.amountText + ' × ' : ''}${resultData.sets}セット ${item.durationMin > 0 ? `(${item.durationMin}分)` : ''}`;
+
+          card.innerHTML = `
+            <div class="card-main-header" onclick="toggleAccordion('${item.id}')">
+              <div class="card-title-group">
+                <div class="card-menu-title">${titleStr}</div>
+                <div class="card-menu-sub" id="sub-meta-${item.id}">${metaStr}</div>
+              </div>
+              <div class="card-right-controls" onclick="event.stopPropagation()">
+                <button class="check-btn ${resultData.isCompleted ? 'checked' : ''}" onclick="toggleResultComplete('${resultData.recordId}', this, '${item.id}')">
+                  ${resultData.isCompleted ? '✓ 完了' : '未完了'}
+                </button>
+                <span class="arrow-icon" onclick="toggleAccordion('${item.id}')">▼</span>
+              </div>
+            </div>
+
+            <div class="card-detail-panel">
+              <div class="ctrl-grid">
+                <div class="ctrl-group">
+                  <label>回数 / 距離</label>
+                  <input type="text" class="ctrl-input" value="${resultData.amountText || ''}" placeholder="例: 20m, 10球" onchange="saveAmountText('${resultData.recordId}', this.value, '${item.id}')">
+                </div>
+                <div class="ctrl-group">
+                  <label>セット数</label>
+                  <div class="counter-btn">
+                    <button type="button" onclick="changeSetCount('${resultData.recordId}', -1, '${item.id}')">-</button>
+                    <span id="set-val-${item.id}" class="font-bold text-sm" style="font-size:0.85rem; font-weight:700;">${resultData.sets}</span>
+                    <button type="button" onclick="changeSetCount('${resultData.recordId}', 1, '${item.id}')">+</button>
+                  </div>
+                </div>
+                <div class="ctrl-group">
+                  <label>タイム (秒)</label>
+                  <input type="number" class="ctrl-input" value="${resultData.timeSec}" onchange="saveTimeSec('${resultData.recordId}', this.value)">
+                </div>
+                <div class="ctrl-group">
+                  <label>メモ</label>
+                  <input type="text" class="ctrl-input" placeholder="感想など" value="${resultData.memo}" onchange="saveMemo('${resultData.recordId}', this.value)">
+                </div>
+              </div>
+              ${resultData.videoUrl ? `<a href="${resultData.videoUrl}" target="_blank" class="video-btn">🎬 参考動画を再生</a>` : ''}
             </div>
           `;
-          groupBlock.appendChild(row);
+
+          groupBlock.appendChild(card);
         });
         container.appendChild(groupBlock);
       });
+    }
+
+    function toggleAccordion(menuId) {
+      const card = document.getElementById(`prac-card-${menuId}`);
+      if (card) card.classList.toggle('open');
+    }
+
+    async function toggleResultComplete(recordId, btn, menuId) {
+      const isCompleted = !btn.classList.contains('checked');
+      btn.classList.toggle('checked', isCompleted);
+      btn.innerText = isCompleted ? '✓ 完了' : '未完了';
+      document.getElementById(`prac-card-${menuId}`).classList.toggle('completed', isCompleted);
+
+      if (recordId) {
+        await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { isCompleted: isCompleted } });
+      }
+    }
+
+    async function changeSetCount(recordId, delta, menuId) {
+      const valElem = document.getElementById(`set-val-${menuId}`);
+      let currentVal = parseInt(valElem.innerText, 10) || 1;
+      currentVal = Math.max(1, currentVal + delta);
+      valElem.innerText = currentVal;
+
+      if (recordId) {
+        await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { sets: currentVal } });
+      }
+    }
+
+    async function saveAmountText(recordId, val, menuId) {
+    }
+
+    async function saveTimeSec(recordId, val) {
+      if (recordId) await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { timeSec: Number(val) || 0 } });
+    }
+
+    async function saveMemo(recordId, val) {
+      if (recordId) await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { memo: String(val) } });
     }
 
     async function saveThemeDirect(dateStr, themeVal) {
       await callGasApi("updateScheduleTheme", { dateStr: dateStr, theme: themeVal });
     }
 
+    // --- 予定作成関連 ---
     async function loadScheduleForDate() {
       const dateStr = document.getElementById('schedDateInput').value;
       if (!dateStr) return;
@@ -769,132 +920,111 @@
       }
     }
 
-    async function loadPracticeResults() {
-      const dateStr = document.getElementById('resultDateInput').value;
-      const container = document.getElementById('resultListContainer');
-      document.getElementById('resultTabContainer').innerHTML = '';
-      container.innerHTML = '<div class="loading">実績データを読み込み中...</div>';
+    function switchTab(type, cat) {
+      document.querySelectorAll(`#pageSched .tab-btn`).forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll(`#pageSched .menu-group`).forEach(grp => grp.classList.remove('active'));
+      document.getElementById(`sched-tab-${cat}`)?.classList.add('active');
+      document.getElementById(`sched-group-${cat}`)?.classList.add('active');
+    }
+
+    // --- メニュー管理関連 ---
+    async function loadManageMenuList() {
+      const container = document.getElementById('manageMenuListContainer');
+      container.innerHTML = '<div class="loading">メニュー情報を読み込み中...</div>';
 
       try {
-        const results = await callGasApi("getPracticeResults", { dateStr: dateStr });
-        renderResultList(results);
+        allMenus = await callGasApi("getMenuList");
+        renderManageMenuList(allMenus);
       } catch (e) {}
     }
 
-    function renderResultList(results) {
-      const tabContainer = document.getElementById('resultTabContainer');
-      const container = document.getElementById('resultListContainer');
-      tabContainer.innerHTML = '';
+    function renderManageMenuList(menus) {
+      const container = document.getElementById('manageMenuListContainer');
       container.innerHTML = '';
 
-      if (results.length === 0) {
-        container.innerHTML = '<div class="loading">この日の練習スケジュールはありません。<br>「予定作成」タブから登録してください。</div>';
+      menus.forEach(m => {
+        const card = document.createElement('div');
+        card.className = 'manage-item-card';
+
+        const titleStr = getDisplayTitle(m.id, m.name);
+        card.innerHTML = `
+          <div class="manage-item-info">
+            <div class="manage-item-title">${titleStr}</div>
+            <div class="manage-item-meta">${m.category} | ${m.peopleType || '1人'} | ${m.amountText || 'セット指定'}</div>
+          </div>
+          <button class="btn-sm-edit" onclick='openMenuEditModal(${JSON.stringify(m)})'>編集</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openMenuEditModal(menu) {
+      const modal = document.getElementById('menuEditModal');
+      modal.style.display = 'flex';
+
+      if (menu) {
+        document.getElementById('modalTitle').innerText = `メニュー編集 (${menu.id})`;
+        document.getElementById('editMenuId').value = menu.id;
+        document.getElementById('editMenuName').value = menu.name;
+        document.getElementById('editMenuCategory').value = menu.category;
+        document.getElementById('editMenuPeopleType').value = menu.peopleType || "1人";
+        document.getElementById('editMenuAmountText').value = menu.amountText || "";
+        document.getElementById('editMenuSecPerSet').value = menu.secPerSet || 60;
+        document.getElementById('editMenuRestSec').value = menu.restSec || 30;
+        document.getElementById('editMenuDefaultSets').value = menu.defaultSets || 1;
+        document.getElementById('editMenuVideoUrl').value = menu.videoUrl || "";
+        document.getElementById('deleteMenuBtn').style.display = 'block';
+      } else {
+        document.getElementById('modalTitle').innerText = '新規メニュー追加';
+        document.getElementById('editMenuId').value = '';
+        document.getElementById('editMenuName').value = '';
+        document.getElementById('editMenuCategory').value = 'アップ';
+        document.getElementById('editMenuPeopleType').value = '1人';
+        document.getElementById('editMenuAmountText').value = '';
+        document.getElementById('editMenuSecPerSet').value = 60;
+        document.getElementById('editMenuRestSec').value = 30;
+        document.getElementById('editMenuDefaultSets').value = 1;
+        document.getElementById('editMenuVideoUrl').value = '';
+        document.getElementById('deleteMenuBtn').style.display = 'none';
+      }
+    }
+
+    function closeMenuEditModal() {
+      document.getElementById('menuEditModal').style.display = 'none';
+    }
+
+    async function saveMenuFromModal() {
+      const name = document.getElementById('editMenuName').value;
+      if (!name) {
+        alert("メニュー名を入力してください。");
         return;
       }
 
-      const extractedCategories = [...new Set(results.map(r => r.category))];
-      const categories = extractedCategories.sort((a, b) => {
-        let idxA = categoryOrder.indexOf(a), idxB = categoryOrder.indexOf(b);
-        return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
-      });
+      const menuData = {
+        id: document.getElementById('editMenuId').value,
+        name: name,
+        category: document.getElementById('editMenuCategory').value,
+        peopleType: document.getElementById('editMenuPeopleType').value,
+        amountText: document.getElementById('editMenuAmountText').value,
+        secPerSet: document.getElementById('editMenuSecPerSet').value,
+        restSec: document.getElementById('editMenuRestSec').value,
+        defaultSets: document.getElementById('editMenuDefaultSets').value,
+        videoUrl: document.getElementById('editMenuVideoUrl').value
+      };
 
-      categories.forEach((cat, index) => {
-        const tabBtn = document.createElement('button');
-        tabBtn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
-        tabBtn.innerText = cat;
-        tabBtn.onclick = () => switchTab('res', cat);
-        tabBtn.id = `res-tab-${cat}`;
-        tabContainer.appendChild(tabBtn);
-
-        const groupDiv = document.createElement('div');
-        groupDiv.className = `menu-group ${index === 0 ? 'active' : ''}`;
-        groupDiv.id = `res-group-${cat}`;
-
-        results.filter(r => r.category === cat).forEach(res => {
-          const card = document.createElement('div');
-          card.className = `result-card ${res.isCompleted ? 'completed' : ''}`;
-          card.id = `res-card-${res.recordId}`;
-
-          const titleStr = getDisplayTitle(res.menuId, res.menuName);
-
-          card.innerHTML = `
-            <div class="result-header">
-              <div>
-                <div class="result-title">${titleStr}</div>
-              </div>
-              <button class="check-btn ${res.isCompleted ? 'checked' : ''}" onclick="toggleResultComplete('${res.recordId}', this)">
-                ${res.isCompleted ? '✓ 完了' : '未完了'}
-              </button>
-            </div>
-
-            <div class="result-controls">
-              <div class="ctrl-group">
-                <label>回数 / 距離</label>
-                <input type="text" class="ctrl-input" value="${res.amountText || ''}" placeholder="例: 20m, 10球" onchange="saveAmountText('${res.recordId}', this.value)">
-              </div>
-
-              <div class="ctrl-group">
-                <label>セット数</label>
-                <div class="counter-btn">
-                  <button type="button" onclick="changeSetCount('${res.recordId}', -1)">-</button>
-                  <span id="set-val-${res.recordId}" class="font-bold text-sm">${res.sets}</span>
-                  <button type="button" onclick="changeSetCount('${res.recordId}', 1)">+</button>
-                </div>
-              </div>
-
-              <div class="ctrl-group">
-                <label>タイム (秒)</label>
-                <input type="number" class="ctrl-input" value="${res.timeSec}" onchange="saveTimeSec('${res.recordId}', this.value)">
-              </div>
-
-              <div class="ctrl-group">
-                <label>メモ</label>
-                <input type="text" class="ctrl-input" placeholder="メモ・感想" value="${res.memo}" onchange="saveMemo('${res.recordId}', this.value)">
-              </div>
-            </div>
-          `;
-          groupDiv.appendChild(card);
-        });
-
-        container.appendChild(groupDiv);
-      });
+      await callGasApi("saveMenuItem", { menuData: menuData });
+      closeMenuEditModal();
+      loadManageMenuList();
     }
 
-    function switchTab(type, cat) {
-      const prefix = type === 'sched' ? 'sched' : 'res';
-      document.querySelectorAll(`#page${type === 'sched' ? 'Sched' : 'Result'} .tab-btn`).forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll(`#page${type === 'sched' ? 'Sched' : 'Result'} .menu-group`).forEach(grp => grp.classList.remove('active'));
-      document.getElementById(`${prefix}-tab-${cat}`)?.classList.add('active');
-      document.getElementById(`${prefix}-group-${cat}`)?.classList.add('active');
-    }
+    async function deleteMenuFromModal() {
+      const menuId = document.getElementById('editMenuId').value;
+      if (!menuId) return;
+      if (!confirm(`メニュー ${menuId} を削除してもよろしいですか？`)) return;
 
-    async function toggleResultComplete(recordId, btn) {
-      const isCompleted = !btn.classList.contains('checked');
-      btn.classList.toggle('checked', isCompleted);
-      btn.innerText = isCompleted ? '✓ 完了' : '未完了';
-      document.getElementById(`res-card-${recordId}`).classList.toggle('completed', isCompleted);
-
-      await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { isCompleted: isCompleted } });
-    }
-
-    async function changeSetCount(recordId, delta) {
-      const valElem = document.getElementById(`set-val-${recordId}`);
-      let currentVal = parseInt(valElem.innerText, 10) || 1;
-      currentVal = Math.max(1, currentVal + delta);
-      valElem.innerText = currentVal;
-
-      await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { sets: currentVal } });
-    }
-
-    async function saveAmountText(recordId, val) {
-    }
-
-    async function saveTimeSec(recordId, val) {
-      await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { timeSec: Number(val) || 0 } });
-    }
-
-    async function saveMemo(recordId, val) {
-      await callGasApi("updatePracticeResult", { recordId: recordId, updateData: { memo: String(val) } });
+      await callGasApi("deleteMenuItem", { menuId: menuId });
+      closeMenuEditModal();
+      loadManageMenuList();
     }
   </script>
 </body>
