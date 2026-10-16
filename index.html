@@ -191,7 +191,18 @@
       padding: 2px 0;
     }
 
-    /* 統合型練習メニューカード・アコーディオン */
+    .category-group-block {
+      margin-bottom: 12px;
+    }
+    .category-group-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 6px;
+      padding-left: 4px;
+    }
+
+    /* 練習メニューカード */
     .practice-card {
       background: #ffffff;
       border: 1.5px solid #e2e8f0;
@@ -210,27 +221,32 @@
       cursor: pointer;
       user-select: none;
     }
-    .card-title-group { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .card-title-group { display: flex; flex-direction: column; gap: 2px; flex: 1; padding-right: 8px; }
     .card-menu-title { font-size: 0.9rem; font-weight: 700; color: #0f172a; }
+    .menu-id-tag { color: #94a3b8; font-size: 0.78rem; font-weight: 500; margin-left: 4px; }
     .card-menu-sub { font-size: 0.75rem; color: #64748b; font-weight: 600; }
 
-    .card-right-controls { display: flex; align-items: center; gap: 8px; }
+    /* 右側操作ボタン＆アコーディオン矢印の余白調整 */
+    .card-right-controls { display: flex; align-items: center; gap: 16px; }
     .check-btn {
       background: #f1f5f9;
       border: 1.5px solid #cbd5e1;
-      padding: 5px 10px;
+      padding: 6px 12px;
       border-radius: 16px;
       font-size: 0.75rem;
       font-weight: 700;
       color: #475569;
       cursor: pointer;
+      white-space: nowrap;
     }
     .check-btn.checked { background: #22c55e; border-color: #22c55e; color: #ffffff; }
 
     .arrow-icon {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: #94a3b8;
       transition: transform 0.2s;
+      padding: 4px 6px;
+      display: inline-block;
     }
     .practice-card.open .arrow-icon { transform: rotate(180deg); }
 
@@ -250,13 +266,22 @@
     }
     .ctrl-group { display: flex; flex-direction: column; gap: 4px; }
     .ctrl-group label { font-size: 0.7rem; color: #64748b; font-weight: 600; }
+    .ctrl-input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      outline: none;
+      background: #ffffff;
+    }
 
     .counter-btn { display: flex; align-items: center; gap: 6px; }
     .counter-btn button {
       background: #e2e8f0;
       border: none;
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       border-radius: 6px;
       font-weight: 700;
       cursor: pointer;
@@ -269,12 +294,12 @@
       background: #fef2f2;
       color: #dc2626;
       border: 1px solid #fca5a5;
-      padding: 4px 10px;
+      padding: 6px 12px;
       border-radius: 8px;
       font-size: 0.75rem;
       font-weight: 700;
       text-decoration: none;
-      margin-top: 8px;
+      margin-top: 10px;
     }
 
     /* カテゴリタブ共通 */
@@ -508,10 +533,13 @@
     let selectedDateStr = new Date().toISOString().split('T')[0];
     let monthlyScheduledDates = new Set();
 
-    function getDisplayTitle(id, name) {
-      if (!name || name === id) return id;
-      if (name.startsWith(id)) return name;
-      return `${id} ${name}`;
+    /* 名称優先・IDを後ろの薄い灰色（#94a3b8）で表示 */
+    function getDisplayTitleHtml(id, name) {
+      const displayName = (!name || name === id) ? id : name;
+      if (displayName === id) {
+        return `<span>${displayName}</span>`;
+      }
+      return `<span>${displayName}</span><span class="menu-id-tag">(${id})</span>`;
     }
 
     async function callGasApi(action, payload = {}) {
@@ -698,13 +726,13 @@
           card.className = `practice-card ${resultData.isCompleted ? 'completed' : ''}`;
           card.id = `prac-card-${item.id}`;
 
-          const titleStr = getDisplayTitle(item.id, item.name);
+          const titleHtml = getDisplayTitleHtml(item.id, item.name);
           const metaStr = `${resultData.amountText ? resultData.amountText + ' × ' : ''}${resultData.sets}セット ${item.durationMin > 0 ? `(${item.durationMin}分)` : ''}`;
 
           card.innerHTML = `
             <div class="card-main-header" onclick="toggleAccordion('${item.id}')">
               <div class="card-title-group">
-                <div class="card-menu-title">${titleStr}</div>
+                <div class="card-menu-title">${titleHtml}</div>
                 <div class="card-menu-sub" id="sub-meta-${item.id}">${metaStr}</div>
               </div>
               <div class="card-right-controls" onclick="event.stopPropagation()">
@@ -725,7 +753,7 @@
                   <label>セット数</label>
                   <div class="counter-btn">
                     <button type="button" onclick="changeSetCount('${resultData.recordId}', -1, '${item.id}')">-</button>
-                    <span id="set-val-${item.id}" class="font-bold text-sm" style="font-size:0.85rem; font-weight:700;">${resultData.sets}</span>
+                    <span id="set-val-${item.id}" style="font-size:0.85rem; font-weight:700;">${resultData.sets}</span>
                     <button type="button" onclick="changeSetCount('${resultData.recordId}', 1, '${item.id}')">+</button>
                   </div>
                 </div>
@@ -854,9 +882,9 @@
           chk.value = menu.id;
           chk.id = `chk-${menu.id}`;
 
-          const titleStr = getDisplayTitle(menu.id, menu.name);
+          const titleHtml = getDisplayTitleHtml(menu.id, menu.name);
           const label = document.createElement('span');
-          label.innerText = `${titleStr} ${menu.amountText ? '(' + menu.amountText + ')' : ''}`;
+          label.innerHTML = `${titleHtml} ${menu.amountText ? '(' + menu.amountText + ')' : ''}`;
 
           card.appendChild(chk);
           card.appendChild(label);
@@ -946,10 +974,10 @@
         const card = document.createElement('div');
         card.className = 'manage-item-card';
 
-        const titleStr = getDisplayTitle(m.id, m.name);
+        const titleHtml = getDisplayTitleHtml(m.id, m.name);
         card.innerHTML = `
           <div class="manage-item-info">
-            <div class="manage-item-title">${titleStr}</div>
+            <div class="manage-item-title">${titleHtml}</div>
             <div class="manage-item-meta">${m.category} | ${m.peopleType || '1人'} | ${m.amountText || 'セット指定'}</div>
           </div>
           <button class="btn-sm-edit" onclick='openMenuEditModal(${JSON.stringify(m)})'>編集</button>
