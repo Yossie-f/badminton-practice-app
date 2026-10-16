@@ -455,10 +455,14 @@
     </div>
 
     <!-- 2. メニュー管理 -->
+   <!-- 2. メニュー管理（カテゴリ別タブ表示） -->
     <div id="pageManage" class="page-section">
       <h2>⚙️ 練習メニュー管理</h2>
       <button type="button" class="btn-submit" style="margin-bottom: 14px;" onclick="openMenuEditModal(null)">＋ 新しいメニューを追加</button>
-      <div id="manageMenuListContainer"><div class="loading">メニュー情報を読み込み中...</div></div>
+      <div class="form-group">
+        <div class="tab-container" id="manageTabContainer"></div>
+        <div id="manageMenuListContainer"><div class="loading">メニュー情報を読み込み中...</div></div>
+      </div>
     </div>
   </div>
 
@@ -955,9 +959,11 @@
       document.getElementById(`sched-group-${cat}`)?.classList.add('active');
     }
 
-    // --- メニュー管理関連 ---
+   // --- メニュー管理関連（カテゴリ別タブ表示対応） ---
     async function loadManageMenuList() {
       const container = document.getElementById('manageMenuListContainer');
+      const tabContainer = document.getElementById('manageTabContainer');
+      if (tabContainer) tabContainer.innerHTML = '';
       container.innerHTML = '<div class="loading">メニュー情報を読み込み中...</div>';
 
       try {
@@ -967,23 +973,64 @@
     }
 
     function renderManageMenuList(menus) {
+      const tabContainer = document.getElementById('manageTabContainer');
       const container = document.getElementById('manageMenuListContainer');
+      if (tabContainer) tabContainer.innerHTML = '';
       container.innerHTML = '';
 
-      menus.forEach(m => {
-        const card = document.createElement('div');
-        card.className = 'manage-item-card';
+      if (!menus || menus.length === 0) {
+        container.innerHTML = '<div class="loading">登録されているメニューがありません。</div>';
+        return;
+      }
 
-        const titleHtml = getDisplayTitleHtml(m.id, m.name);
-        card.innerHTML = `
-          <div class="manage-item-info">
-            <div class="manage-item-title">${titleHtml}</div>
-            <div class="manage-item-meta">${m.category} | ${m.peopleType || '1人'} | ${m.amountText || 'セット指定'}</div>
-          </div>
-          <button class="btn-sm-edit" onclick='openMenuEditModal(${JSON.stringify(m)})'>編集</button>
-        `;
-        container.appendChild(card);
+      // カテゴリ一覧を取得して並び替え
+      const extractedCategories = [...new Set(menus.map(m => m.category))];
+      const categories = extractedCategories.sort((a, b) => {
+        let idxA = categoryOrder.indexOf(a), idxB = categoryOrder.indexOf(b);
+        return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
       });
+
+      categories.forEach((cat, index) => {
+        // カテゴリタブボタン
+        if (tabContainer) {
+          const tabBtn = document.createElement('button');
+          tabBtn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+          tabBtn.innerText = cat;
+          tabBtn.onclick = () => switchManageTab(cat);
+          tabBtn.id = `mng-tab-${cat}`;
+          tabContainer.appendChild(tabBtn);
+        }
+
+        // カテゴリごとのグループ表示エリア
+        const groupDiv = document.createElement('div');
+        groupDiv.className = `menu-group ${index === 0 ? 'active' : ''}`;
+        groupDiv.id = `mng-group-${cat}`;
+
+        menus.filter(m => m.category === cat).forEach(m => {
+          const card = document.createElement('div');
+          card.className = 'manage-item-card';
+
+          const titleHtml = getDisplayTitleHtml ? getDisplayTitleHtml(m.id, m.name) : `${m.name} (${m.id})`;
+          
+          card.innerHTML = `
+            <div class="manage-item-info">
+              <div class="manage-item-title">${titleHtml}</div>
+              <div class="manage-item-meta">${m.category} | ${m.peopleType || '1人'} | ${m.amountText || 'セット指定'}</div>
+            </div>
+            <button class="btn-sm-edit" onclick='openMenuEditModal(${JSON.stringify(m)})'>編集</button>
+          `;
+          groupDiv.appendChild(card);
+        });
+
+        container.appendChild(groupDiv);
+      });
+    }
+
+    function switchManageTab(cat) {
+      document.querySelectorAll(`#pageManage .tab-btn`).forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll(`#pageManage .menu-group`).forEach(grp => grp.classList.remove('active'));
+      document.getElementById(`mng-tab-${cat}`)?.classList.add('active');
+      document.getElementById(`mng-group-${cat}`)?.classList.add('active');
     }
 
     function openMenuEditModal(menu) {
