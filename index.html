@@ -7,7 +7,6 @@
   <!-- ファビコン（タブのアイコン）の絵文字設定 -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏸</text></svg>">
   <style>
-    /* 既存のスタイル */
     body { font-family: sans-serif; margin: 0; padding: 16px; background: #f1f5f9; color: #1e293b; }
     .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .nav-bar { display: flex; gap: 8px; margin-bottom: 16px; }
@@ -27,7 +26,7 @@
 </head>
 <body>
   <div class="container">
-    <!-- ナビゲーションボタン（ルーティン設定を含む） -->
+    <!-- ナビゲーションメニューボタン -->
     <div class="nav-bar">
       <button id="navView" class="nav-btn active" onclick="switchPage('view')">🚀 今日の練習</button>
       <button id="navSched" class="nav-btn" onclick="switchPage('sched')">📅 予定作成</button>
@@ -58,7 +57,7 @@
       <div id="manageMenuContainer"></div>
     </div>
 
-    <!-- 4. 週間ルーティン設定画面（新規追加） -->
+    <!-- 4. 週間ルーティン設定画面 -->
     <div id="pageRoutine" class="page-section">
       <h2>📅 週間ルーティン設定</h2>
       <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 14px;">
@@ -104,7 +103,14 @@
       const today = new Date().toISOString().split('T')[0];
       const dateInput = document.getElementById('schedDateInput');
       if (dateInput) dateInput.value = today;
-      // 画面切り替え関数（ルーティン設定対応版・エラー防止安全設計）
+
+      try {
+        allMenus = await callGasApi("getMenuList");
+        if (typeof renderSchedMenuList === 'function') renderSchedMenuList(allMenus);
+        if (typeof renderCalendar === 'function') renderCalendar();
+      } catch (e) {}
+    };
+    // ページ切り替え関数
     function switchPage(page) {
       document.getElementById('navView')?.classList.toggle('active', page === 'view');
       document.getElementById('navSched')?.classList.toggle('active', page === 'sched');
@@ -127,7 +133,35 @@
       }
     }
 
-    // 週間ルーティン管理用ロジック
+    // 既存の基本関数（エラー防止用プレースホルダー）
+    function renderCalendar() {
+      const container = document.getElementById('calendarContainer');
+      if (container && !container.innerHTML) {
+        container.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">カレンダー表示エリア</p>';
+      }
+    }
+
+    function loadScheduleForDate() {
+      // 予定作成・詳細画面の読み込み処理
+    }
+
+    function loadManageMenuList() {
+      const container = document.getElementById('manageMenuContainer');
+      if (container && allMenus.length > 0) {
+        let html = '<ul style="padding-left: 20px;">';
+        allMenus.forEach(m => {
+          html += `<li><strong>${m.name}</strong> (${m.id} / ${m.category})</li>`;
+        });
+        html += '</ul>';
+        container.innerHTML = html;
+      }
+    }
+
+    function renderSchedMenuList(menus) {
+      // スケジュールメニューリストの描画
+    }
+
+    // --- 週間ルーティン管理機能 ---
     let weeklyRoutineData = {};
 
     async function loadWeeklyRoutine() {
@@ -190,7 +224,7 @@
         container.appendChild(dayBox);
       });
 
-      // 対象月曜日の初期値セット
+      // 対象月曜日の初期値セット（今日の直近の月曜日）
       const today = new Date();
       const dayNum = today.getDay();
       const diffToMonday = today.getDate() - dayNum + (dayNum === 0 ? -6 : 1);
