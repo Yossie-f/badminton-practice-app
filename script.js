@@ -1,4 +1,3 @@
-// GASとの通信を行う共通関数
 async function callGasApi(funcName, ...args) {
   return new Promise((resolve, reject) => {
     google.script.run
@@ -20,9 +19,9 @@ window.onload = async function() {
   await refreshAllMenus();
   renderCalendar();
   loadScheduleForDate();
+  loadManageMenuList();
 };
 
-// メニュー一覧を確実に取得・保持する関数
 async function refreshAllMenus() {
   try {
     const res = await callGasApi("getMenuList");
@@ -34,7 +33,6 @@ async function refreshAllMenus() {
   }
 }
 
-// ページ切り替え関数
 async function switchPage(page) {
   document.getElementById('navView')?.classList.toggle('active', page === 'view');
   document.getElementById('navSched')?.classList.toggle('active', page === 'sched');
@@ -46,7 +44,6 @@ async function switchPage(page) {
   document.getElementById('pageManage')?.classList.toggle('active', page === 'manage');
   document.getElementById('pageRoutine')?.classList.toggle('active', page === 'routine');
 
-  // 画面を開くたびにメニューが空なら必ず再取得する
   if (!allMenus || allMenus.length === 0) {
     await refreshAllMenus();
   }
@@ -62,8 +59,8 @@ async function switchPage(page) {
   }
 }
 
-// カレンダー描画関数
-function renderCalendar() {
+// --- 1. カレンダー描画関数 ---
+async function renderCalendar() {
   const container = document.getElementById('calendarContainer');
   if (!container) return;
 
@@ -87,11 +84,26 @@ function renderCalendar() {
   for (let day = 1; day <= lastDay; day++) {
     const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     html += `<div class="calendar-cell" onclick="jumpToSched('${dateStr}')">
-      <div style="font-weight:bold; font-size:0.9rem;">${day}</div>
+      <div style="font-weight:bold; font-size:0.85rem;">${day}</div>
+      <div id="cal-cell-${dateStr}" style="font-size:0.7rem; color:#2563eb; overflow:hidden; max-height:28px;"></div>
     </div>`;
   }
   html += `</div>`;
   container.innerHTML = html;
+
+  try {
+    const monthSchedules = await callGasApi("getMonthSchedules", { year: currentYear, month: currentMonth });
+    if (monthSchedules && typeof monthSchedules === 'object') {
+      for (const [dateStr, data] of Object.entries(monthSchedules)) {
+        const cellElem = document.getElementById(`cal-cell-${dateStr}`);
+        if (cellElem && data) {
+          cellElem.innerText = data.theme || data.summary || "予定あり";
+        }
+      }
+    }
+  } catch (e) {
+    console.log("カレンダー詳細データの取得エラー:", e);
+  }
 }
 
 function changeMonth(delta) {
@@ -108,21 +120,84 @@ function jumpToSched(dateStr) {
   loadScheduleForDate();
 }
 
-function loadScheduleForDate() {
+// --- 2. 予定作成・スケジュール詳細画面 ---
+async function loadScheduleForDate() {
   const dateInput = document.getElementById('schedDateInput');
   const container = document.getElementById('schedMenuList');
   if (!container || !dateInput) return;
 
   const targetDate = dateInput.value;
-  container.innerHTML = `<div style="padding:10px; color:#64748b;">${targetDate} の予定データを読み込み中...</div>`;
+  if (!targetDate) return;
+
+  container.innerHTML = `<div class="loading">${targetDate} の予定データを読み込み中...</div>`;
+
+  try {
+    if (!allMenus || allMenus.length === 0) await refreshAllMenus();
+    
+    const schedData = await callGasApi("getScheduleForDate", { date: targetDate }) || {};
+    
+    let html = `<div style="margin-top: 12px; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0;">`;
+    html += `<h3 style="margin-top:0; font-size:1rem; color:#1e293b;">📝 ${targetDate} のメニュー編集</h3>`;
+    
+    html += `<div style="margin-bottom:10px;">
+      <label style="font-size:0.85rem; font-weight:bold;">練習テーマ:</label>
+      <input type="text" id="schedThemeInput" class="form-control" value="${schedData.theme || ''}" placeholder="例: フットワーク強化">
+    </div>`;
+
+    html += `<label style="font-size:0.85rem; font-weight:bold; display:block; margin-bottom:6px;">実施メニュー選択:</label>`;
+    html += `<div style="display: flex; flex-direction: column; gap: 6px; max-height: 250px; overflow-y: auto; background: #fff; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">`;
+    
+    const assignedIds = schedData.menuIds || [];
+    allMenus.forEach(m => {
+      const isChecked = assignedIds.includes(m.id) ? 'checked' : '';
+      html += `
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+          <input type="checkbox" value="${m.id}" class="sched-menu-checkbox" ${isChecked} style="width: 16px; height: 16px;">
+          <span><strong>${m.name}</strong> <span style="color: #64748b; font-size: 0.8rem;">(${m.category})</span></span>
+        </label>
+      `;
+    });
+    html += `</div>`;
+
+    html += `<button type="button" class="btn-submit" style="margin-top: 14px; background-color: #2563eb;" onclick="saveScheduleForDate('${targetDate}')">💾 この日の予定を保存</button>`;
+    html += `</div>`;
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<div class="error" style="color:red;">予定データの読み込みに失敗しました</div>';
+  }
 }
 
-function loadManageMenuList() {
+async function saveScheduleForDate(dateStr) {
+  const theme = document.getElementById('schedThemeInput')?.value || "";
+  const checkboxes = document.querySelectorAll('.sched-menu-checkbox:checked');
+  let menuIds = [];
+  checkboxes.forEach(cb => menuIds.push(cb.value));
+
+  try {
+    const res = await callGasApi("saveSchedule", { date: dateStr, theme: theme, menuIds: menuIds });
+    if (res && res.status === "success") {
+      alert(`${dateStr} の予定を保存しました！`);
+      renderCalendar();
+    } else {
+      alert("保存に失敗しました。");
+    }
+  } catch (e) {
+    alert("通信エラーが発生しました。");
+  }
+}
+
+// --- 3. メニュー管理画面 ---
+async function loadManageMenuList() {
   const container = document.getElementById('manageMenuContainer');
   if (!container) return;
 
   if (!allMenus || allMenus.length === 0) {
-    container.innerHTML = '<p style="color:#64748b;">メニューが登録されていません。（GAS側のデータをご確認ください）</p>';
+    await refreshAllMenus();
+  }
+
+  if (!allMenus || allMenus.length === 0) {
+    container.innerHTML = '<p style="color:#64748b;">メニューが登録されていません。</p>';
     return;
   }
 
@@ -136,7 +211,7 @@ function loadManageMenuList() {
   container.innerHTML = html;
 }
 
-// --- 週間ルーティン管理機能 ---
+// --- 4. 週間ルーティン設定画面 ---
 let weeklyRoutineData = {};
 
 async function loadWeeklyRoutine() {
@@ -151,7 +226,7 @@ async function loadWeeklyRoutine() {
     if (!allMenus || allMenus.length === 0) {
       await refreshAllMenus();
     }
-    weeklyRoutineData = await callGasApi("getWeeklyRoutine");
+    weeklyRoutineData = await callGasApi("getWeeklyRoutine") || {};
     renderRoutineEditor();
   } catch (e) {
     container.innerHTML = '<div class="error">ルーティン情報の読み込みに失敗しました</div>';
@@ -199,7 +274,6 @@ function renderRoutineEditor() {
     container.appendChild(dayBox);
   });
 
-  // 対象月曜日の初期値セット（今日の直近の月曜日）
   const today = new Date();
   const dayNum = today.getDay();
   const diffToMonday = today.getDate() - dayNum + (dayNum === 0 ? -6 : 1);
@@ -231,7 +305,7 @@ async function saveWeeklyRoutineData() {
 
   try {
     const res = await callGasApi("saveWeeklyRoutine", newRoutine);
-    if (res.status === "success") {
+    if (res && res.status === "success") {
       alert("週間ルーティン設定を保存しました！");
     } else {
       alert("保存に失敗しました。");
@@ -254,10 +328,11 @@ async function handleGenerateRoutine() {
 
   try {
     const res = await callGasApi("generateScheduleFromRoutine", { startDate: targetDate });
-    if (res.status === "success") {
+    if (res && res.status === "success") {
       alert(`スケジュールの一括生成が完了しました！（新規追加件数: ${res.count}件）`);
+      renderCalendar();
     } else {
-      alert("エラー: " + res.message);
+      alert("エラー: " + (res?.message || "不明なエラー"));
     }
   } catch (e) {
     alert("一括生成中に通信エラーが発生しました。");
