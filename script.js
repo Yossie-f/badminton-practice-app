@@ -1,5 +1,5 @@
 // ★ ご自身のGASの「ウェブアプリのURL」に書き換えてください
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/【ここにGASのウェブアプリURLを貼り付け】/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbwGm9MPl1NZyeHBMui2XNr31BgaxWG65uQ5OaE_udD0TLQvLuwfoCLYBacrlGjsReQ/exec/exec";
 
 // GASとの通信を行う共通関数（fetch方式）
 async function callGasApi(funcName, ...args) {
