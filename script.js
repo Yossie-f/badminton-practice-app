@@ -1,10 +1,41 @@
+// ★ ご自身のGASの「ウェブアプリのURL」に書き換えてください
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/【ここにGASのウェブアプリURLを貼り付け】/exec";
+
+// GASとの通信を行う共通関数（fetch方式）
 async function callGasApi(funcName, ...args) {
-  return new Promise((resolve, reject) => {
-    google.script.run
-      .withSuccessHandler(res => resolve(res))
-      .withFailureHandler(err => reject(err))
-      [funcName](...args);
-  });
+  try {
+    // データの取得（GET）系
+    if (["getMenuList", "getWeeklyRoutine", "getMonthSchedules", "getScheduleForDate"].includes(funcName)) {
+      let url = `${GAS_WEB_APP_URL}?action=${funcName}`;
+      if (funcName === "getMonthSchedules") {
+        url += `&year=${args[0].year}&month=${args[0].month}`;
+      } else if (funcName === "getScheduleForDate") {
+        url += `&date=${args[0].date}`;
+      }
+      const res = await fetch(url);
+      return await res.json();
+    } 
+    // データの保存・更新（POST）系
+    else {
+      let payload = { action: funcName };
+      if (funcName === "saveWeeklyRoutine") payload.routine = args[0];
+      if (funcName === "generateScheduleFromRoutine") payload.startDate = args[0].startDate;
+      if (funcName === "saveSchedule") {
+        payload.date = args[0].date;
+        payload.theme = args[0].theme;
+        payload.menuIds = args[0].menuIds;
+      }
+
+      const res = await fetch(GAS_WEB_APP_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    }
+  } catch (err) {
+    console.log("通信エラー:", err);
+    throw err;
+  }
 }
 
 let allMenus = [];
